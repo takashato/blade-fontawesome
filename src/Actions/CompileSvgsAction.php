@@ -3,9 +3,7 @@
 namespace OwenVoke\BladeFontAwesome\Actions;
 
 use DirectoryIterator;
-
-use function Safe\file_get_contents;
-use function Safe\file_put_contents;
+use RuntimeException;
 
 class CompileSvgsAction
 {
@@ -30,10 +28,19 @@ class CompileSvgsAction
 
             /** @var string $svgContent */
             $svgContent = file_get_contents($svg->getPathname());
+
+            if ($svgContent === false) {
+                throw new RuntimeException("Failed to read file: {$svg->getPathname()}");
+            }
+
             $svgContent = str_replace('<svg ', '<svg fill="currentColor" ', $svgContent);
             $svgContent = str_replace('height="1em" ', ' ', $svgContent);
 
-            file_put_contents("{$this->svgOutputDirectory}/{$svg->getFilename()}", $svgContent);
+            $ret = file_put_contents("{$this->svgOutputDirectory}/{$svg->getFilename()}", $svgContent);
+
+            if ($ret === false) {
+                throw new RuntimeException("Failed to write file: {$svg->getFilename()}");
+            }
         }
     }
 }
